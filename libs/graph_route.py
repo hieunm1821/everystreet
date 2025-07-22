@@ -45,7 +45,12 @@ def plot_graph_route(
     y = []
     for r in route:
         u, v, d = r
-        data = graph.get_edge_data(u, v) or graph.get_edge_data(v, u)
+        data = graph.get_edge_data(u, v)
+        if data is None:
+            data = graph.get_edge_data(v, u)
+            needReverse = True
+        else:
+            needReverse = False
         if d not in data:
             d = 0
 
@@ -53,10 +58,15 @@ def plot_graph_route(
         if "geometry" in data:
             # if geometry attribute exists, add all its coords to list
             xs, ys = data["geometry"].xy
+            if needReverse:
+                xs = xs[::-1]
+                ys = ys[::-1]   
             x.extend(xs)
             y.extend(ys)
         else:
             # otherwise, the edge is a straight line from node to node
+            if needReverse:
+                u, v = v, u
             x.extend((graph.nodes[u]["x"], graph.nodes[v]["x"]))
             y.extend((graph.nodes[u]["y"], graph.nodes[v]["y"]))
     ax.plot(x, y, c=route_color, lw=route_linewidth, alpha=route_alpha)
